@@ -1,5 +1,58 @@
 # 202430132 진현우
 
+
+## 0930
+
+### 네비게이션 작동 방식
+
+Server Rendering
+
+Prefetching
+
+Streaming
+
+Client-side transitions(클라이언트 측 전환)
+
+#### 1-1 Server Rendering
+
+서버 렌더링은 발생 시점에 따라 2가지 유형이 있다.
+
+정적 렌더링은 빌드 시점이나 재검증 중에 발생, 결과는 cache 된다.
+
+동적 렌더링은 클라이언트 요총에 대한 응답으로 **요청 시점에 발생**
+
+
+### route 방식 비교
+
+#### page router
+```bash
+디렉토리 루트 : pages/
+
+pages/about.js -> /about 으로 간다
+
+대표기능: 동적 라우트,getStaticProps 등
+```
+
+#### apsp router
+```bash
+디렉토리 루트 : app
+
+app/about/page.tsx -> /about
+
+대표기능: 레이아웃 중첩, 서버 컴포넌트, 병렬 라우트 등등
+```
+
+##### 프로젝트 별 추천 방식
+```bash
+새 프로젝트 시작: App Router
+
+기존 프로젝트 유지보수: pages/
+
+React 처럼 수동 라우팅이 필요한 경우: React + react-router-dom
+```
+
+
+
 ## 0923
 asd
 ### slug
