@@ -1,5 +1,141 @@
 # 202430132 진현우
 
+## 1007
+
+### server or client component를 언제 사용하는가
+
+client 환경과 server 환경은 서로 다른 기능을 가지고 있다.
+
+사용하는 사례에 따라 각각의 환경에서 필요한 로직을 실행할 수 있다.
+
+**client**
+
+```bash
+state 및 event handler 예 onClick, onChange
+lifecycle logic 예 useEffect
+브라우저 전용 api 예 localStroage, window, Navigator.geolocation
+사용자 전용 hook 
+```
+**server**
+
+```bash
+서버의 데이터베이스 혹은 api에서 data를 가져오는 경우
+api key, token 및 기타 보안 데이터를 client에 노출하지 않고 사용
+브라우저로 전송되는 javascript의 양을 줄이고 싶을 떄
+콘텐츠가 포함된 첫 번째 페인트(first contentful paint-fcp)를 개선, 콘텐츠를 client에 점진적으로 스트리밍
+```
+
+### hydration이 완료되지 않음
+
+Link 는 클라이턴트 컴포넌트이기 떄문에 라우팅 페이지를 프리페치하기 전에 하이드레이션 합니다.
+
+초기 방문 시 대용량 자바스크립트 번들로 인해 하이드레이션이 지연되어 프리페칭이 바로 시작하지 않을 수 있다.
+
+react는 선택전 hydration을 통해 이를 완화하며, 다음과 같은 방법으로 이를 더욱 개선할 수 있다.
+
+@next/bundle-analyzer 플러그인을 사용하면 대규모 종속성을 제거하여, 번들 크기를 식별하고 줄일 수 있다.
+
+가능하다면 클라이언트에서 서버로 로직을 이동한다.
+
+좀 더 자세한 내용은 서버 및 클라이언트 컴포넌트 문서를 참조하자
+
+### 프리페칭 비활성화
+
+대량의 링크 목록을 렌더링할 때 불필요한 리소스 사용을 방지함
+
+그러나 비활성화 하면 단점이 있다
+
+정적 라우팅은 사용자가 링크를 클릭할 때만 가져옴
+
+동적 라우팅은 클라이언트가 해당 경로로 이동하기 전에 서버에서 먼저 렌더링 되야함
+
+프리페치를 완전히 비활성화하지 않고 리소스 사용량은 줄이려면, 마우스 호버 시에만 프리페치 하면 된다.
+
+이러하면 뷰 포트의 모든 링크가 아닌 사용자가 방문할 가능성이 높은 경로로만 프리페치가 제한된다
+
+```ts
+'use client'
+ 
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+ 
+function ManualPrefetchLink({
+  href,
+  children,
+}: {
+  href: string
+  children: React.ReactNode
+}) {
+  const router = useRouter()
+ 
+  useEffect(() => {
+    let cancelled = false
+    const poll = () => {
+      if (!cancelled) router.prefetch(href, { onInvalidate: poll })
+    }
+    poll()
+    return () => {
+      cancelled = true
+    }
+  }, [href, router])
+ 
+  return (
+    <a
+      href={href}
+      onClick={(event) => {
+        event.preventDefault()
+        router.push(href)
+      }}
+    >
+      {children}
+    </a>
+  )
+}
+```
+
+```ts
+'use client'
+ 
+import Link, { LinkProps } from 'next/link'
+ 
+function NoPrefetchLink({
+  prefetch,
+  ...rest
+}: LinkProps & { children: React.ReactNode }) {
+  return <Link {...rest} prefetch={false} />
+}
+```
+### 느린 네트워크
+
+네트워크가 느리거나 불안정한 경우, 사용자가 링크를 클릭하기 전에 프리페칭이 완료되지 않을 수 있음
+
+이것으로 정적 경로와 동적 경로 모두에 영향을 미칠 수 있다
+
+이경우 loding.tsx를 사용한다
+
+
+
+### await 없어도 async를 붙이는 이유
+
+1. 일관성 유지
+
+같은 프로젝트 안에서 어떤 페이지는 async, 어떤 페이지는 function이면 혼란스럽다
+
+2. 확장성
+
+지금은 더미 데이터를 쓰지만, 나중에 db나 api에서 데이터를 가져올 때 await fetch
+같은 코드가 들어갈 수 있기 때문에 미리 async를 붙여 두면 수정할 필요가 없다
+
+3. react server component 호환성
+
+server component는 Promise를 반환할 수 있어야 하고, Next.js는 내부적으로 async 함수 패턴에 맞춰 최적화된 렌더링 파이프라인을 갖고 있어서 async가 붙어 있어도 불필요한 오버헤드가 거의 없다.
+
+### generationStaticParams
+
+자체는 slug 배열만 순회함
+
+빌드 프로세서가 이 배열을 순회 -> 각 slug에 대해 page.tsx 실행 
+
 ## 0930
 
 ### 네비게이션 작동 방식
