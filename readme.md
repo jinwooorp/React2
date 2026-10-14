@@ -1,6 +1,68 @@
 # 202430132 진현우
 
+## 1014
+
 ## 1007
+
+### client component 사용
+
+파일의 맨 위, 즉 import문 위에 use client 지시문을 추가해서 client component를 생성할 수 있다.
+
+use client는 server와 client 모듈 트리 사이의 경계를 선언하는데 사용
+
+### 서버 컴포넌트의 작동
+
+next는 server에서 react의 api를 사용해서 랜더링을 조정함
+랜더링 작업은 개별 라우팅 세그먼트 별 묶음으로 나뉨(chunk)
+
+RSC라는 특이한 데이터로 렌더링 됨
+
+클라이언트 컴포넌트와 RSC payload는 html을 미리 렌더링 하는데 사용한다
+
+#### RSC(React Server Component)란
+
+렌더링 된 react components 트리를 직렬화 하여 표현한 컴팩트한 형태
+
+client 에서 react가 브라우저 dom을 업데이트 하는데 사용
+
+#### client component 작동
+
+1. html을 사용자에게 경로(라우팅 페이지)의 비대화형(정적)미리보기를 즉시 보여주는데 사용
+
+2. RSC 페이로드는 client와 server component 트리를 조정하는데 사용됩니다.
+
+3. js는 client component를 hydration을 하고, 애플리케이션을 대화혀응로 만드는 데 사용함
+
+###### hydration
+
+hydration 은 이벤트 핸들러를 dom에 연결하여 정적 html을 인터랙티브하게 만든는 react의 프로세스 입니다.
+
+### isLiking state
+
+중복 클릭 방지
+
+ui 피드백
+상태 안정화
+
+### Pessimistic update
+
+이벤트 발생 시 먼저 서버에 요청을 보내고, 서버에서 응답응ㄹ 받은 후에 클라이언트ui를 업데이트
+
+- 장점
+  서버의 응답을 기반으로 하기 떄문에 데이터의 일관성이 보장된다
+  오류가 발생할 가능성이 낮고, 잘못된 정보가 표시될 염려가 없다.
+
+- 단점
+  서버의 응답을 기다리는 거라, 응답이 늦어지면 사용자 경험이 저하됨
+  특히 네트워크 지연이 발생할 경우 체감속도가 느려짐
+
+### optimistic update
+
+사용자 이벤트가 발생하면 서버 응답ㅇ을 기다리지 않고 클라이언트의 ui를 즉시 변경함
+
+서버의 응답이 없으면 ui를 원래대로 되돌린다.
+
+네트워크 지연 동안에도 앱이 빠르게 반응하다
 
 ### server or client component를 언제 사용하는가
 
@@ -14,8 +76,9 @@ client 환경과 server 환경은 서로 다른 기능을 가지고 있다.
 state 및 event handler 예 onClick, onChange
 lifecycle logic 예 useEffect
 브라우저 전용 api 예 localStroage, window, Navigator.geolocation
-사용자 전용 hook 
+사용자 전용 hook
 ```
+
 **server**
 
 ```bash
@@ -55,10 +118,10 @@ react는 선택전 hydration을 통해 이를 완화하며, 다음과 같은 방
 
 ```ts
 'use client'
- 
+
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
- 
+
 function ManualPrefetchLink({
   href,
   children,
@@ -67,7 +130,7 @@ function ManualPrefetchLink({
   children: React.ReactNode
 }) {
   const router = useRouter()
- 
+
   useEffect(() => {
     let cancelled = false
     const poll = () => {
@@ -78,7 +141,7 @@ function ManualPrefetchLink({
       cancelled = true
     }
   }, [href, router])
- 
+
   return (
     <a
       href={href}
@@ -95,9 +158,9 @@ function ManualPrefetchLink({
 
 ```ts
 'use client'
- 
+
 import Link, { LinkProps } from 'next/link'
- 
+
 function NoPrefetchLink({
   prefetch,
   ...rest
@@ -105,6 +168,7 @@ function NoPrefetchLink({
   return <Link {...rest} prefetch={false} />
 }
 ```
+
 ### 느린 네트워크
 
 네트워크가 느리거나 불안정한 경우, 사용자가 링크를 클릭하기 전에 프리페칭이 완료되지 않을 수 있음
@@ -112,8 +176,6 @@ function NoPrefetchLink({
 이것으로 정적 경로와 동적 경로 모두에 영향을 미칠 수 있다
 
 이경우 loding.tsx를 사용한다
-
-
 
 ### await 없어도 async를 붙이는 이유
 
@@ -134,7 +196,7 @@ server component는 Promise를 반환할 수 있어야 하고, Next.js는 내부
 
 자체는 slug 배열만 순회함
 
-빌드 프로세서가 이 배열을 순회 -> 각 slug에 대해 page.tsx 실행 
+빌드 프로세서가 이 배열을 순회 -> 각 slug에 대해 page.tsx 실행
 
 ## 0930
 
@@ -155,7 +217,6 @@ Client-side transitions(클라이언트 측 전환)
 정적 렌더링은 빌드 시점이나 재검증 중에 발생, 결과는 cache 된다.
 
 동적 렌더링은 클라이언트 요총에 대한 응답으로 **요청 시점에 발생**
-
 
 단점이 있다면 클라이언트가 새 경로를 표시하기 전 서버의 응답을 기다려야 한다.
 
@@ -183,9 +244,9 @@ Client-side transitions(클라이언트 측 전환)
 
 사용자가 링크를 클릭하기 전 다음 경로룰 렌더링하는데 필요한 데이터가 클라이언트측에 이미 준비되어 있기 때문에 애플리케이션에서 경로 간 이동이 즉각적으로 느껴짐
 
-Nextjs 는```<Link>``` 컴포넌트와 연결된 경로를 자동으로 사용자 뷰 포트에 미리 가져온다 
+Nextjs 는`<Link>` 컴포넌트와 연결된 경로를 자동으로 사용자 뷰 포트에 미리 가져온다
 
-```<a>``` 태그를 사용하면 프리페칭을 하지 않는다
+`<a>` 태그를 사용하면 프리페칭을 하지 않는다
 
 경로의 어느정도를 프리페칭할지는 정적,동적 경로인지에 따라 다르다.
 
@@ -199,7 +260,7 @@ Next는 동적 라우팅을 건너뛰거나 부분적으로 프리페칭을 함�
 
 동적 경로에 대한 네비게이션 환경을 개선하려면 스트리밍을 사용할 수 있다.
 
-#### 1-3  Streaming
+#### 1-3 Streaming
 
 스트리밍을 사용하면 서버가 **전체 경로가 렌더링될 때까지 기다리지 않고, 동적 경로의 일부가 준비되는 즉시 클라이언트에 전송**할 수 있다
 
@@ -207,13 +268,13 @@ Next는 동적 라우팅을 건너뛰거나 부분적으로 프리페칭을 함�
 
 동적 경로의 경우, 부분적으로 미리 가져올 수 있다는 뜻이다.
 
-스트리밍을 쓸려면 
+스트리밍을 쓸려면
 
-라우팅 폴더에 ***loading.tsx*** 파일을 생성한
+라우팅 폴더에 **_loading.tsx_** 파일을 생성한
 
-next는 내부적으로 page.tsx 콘텐츠를 ```<Suspense>``` 경계로 자동 래핑함
+next는 내부적으로 page.tsx 콘텐츠를 `<Suspense>` 경계로 자동 래핑함
 
-```<Suspense>``` 를 사용하여  중첩된 컴포넌트로 
+`<Suspense>` 를 사용하여 중첩된 컴포넌트로
 
 loading의 이점
 
@@ -233,13 +294,12 @@ TTI
 
 이로 인해 state가 삭제되고, 스크롤 위치가 재설정되며, 상호작용이 차단된다.
 
-Next는 ```<Link>``` 컴포넌트를 사용하는 Client-side transition을 통해 이를 방지한다
-
-
+Next는 `<Link>` 컴포넌트를 사용하는 Client-side transition을 통해 이를 방지한다
 
 ### route 방식 비교
 
 #### page router
+
 ```bash
 디렉토리 루트 : pages/
 
@@ -248,7 +308,8 @@ pages/about.js -> /about 으로 간다
 대표기능: 동적 라우트,getStaticProps 등
 ```
 
-#### apsp router
+#### app router
+
 ```bash
 디렉토리 루트 : app
 
@@ -258,6 +319,7 @@ app/about/page.tsx -> /about
 ```
 
 ##### 프로젝트 별 추천 방식
+
 ```bash
 새 프로젝트 시작: App Router
 
@@ -266,10 +328,10 @@ app/about/page.tsx -> /about
 React 처럼 수동 라우팅이 필요한 경우: React + react-router-dom
 ```
 
-
-
 ## 0923
+
 asd
+
 ### slug
 
 사이트의 특정 페이지를 쉽게 읽을 수 있는 형태로 식별하는 url의 일부
@@ -290,9 +352,9 @@ Link 태그는 HTML a 태그 요소를 확장하여 프리페칭(prefetching)과
 
 nextjs에서 라우트 간 이동을 위햐 주로 사용되는 방법이다.
 
-```ts 
+```ts
 import Link from 'next/link'
- 
+
 export default function Page() {
   return <Link href="/dashboard">Dashboard</Link>
 }
@@ -309,16 +371,16 @@ export default function Page() {
 정적 페이지는 layout
 동적 페이지는 template에 작성한다
 
-라우팅 페이지만 src디렉토리에 있으면 무방하며 
+라우팅 페이지만 src디렉토리에 있으면 무방하며
 다른 파일들은 밖에 있어도 괜찮다
 
-### 프로젝트 실행 
+### 프로젝트 실행
 
-``` pnpm create next-app@latest [ProjectName]  ``` 
+`pnpm create next-app@latest [ProjectName] `
 
-or 
+or
 
-``` pnpm create next-app@latest [ProjectName] --yes ```
+`pnpm create next-app@latest [ProjectName] --yes`
 
 ### route
 
