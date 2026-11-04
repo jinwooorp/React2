@@ -1,6 +1,34 @@
 # 202430132 진현우
 
-## 1014
+## 1104
+
+### context
+
+next에서는 context는 react의 context API를 사용하여 컴포넌트 사이에 데이터를 공유하는 매커니즘을 의미한다
+
+부모 컴포넌트에서 자식 컴포넌트로 직접 props를 전달하지 않고도, 특정 데이터를 공유할 수 있다.
+
+### 특징
+
+_전역 상태 관리_
+
+애플리케이션 전체에서 공유해야 하는 데이터를 중앙 집중적으로 관리할 수 있다.
+
+_props drilling 문제 해결_
+
+컴포넌트에서 바로 데이터를 가져올 수 있어서, 코드의 가독성을 높히고 유지보수가 용이해진다.
+
+_react 컴포넌트 사용_
+
+## 1028
+
+### JS bundle 크기 줄이기
+
+client JavaScript 번들의 크기를 줄이려면 UI의 큰 부분을 client component로 표시하는 대신 특정 대화형 component에 "use client"를 추가합니다.
+
+예를 들어, 다음 예제의 `<Layout>` component는 로고와 탐색 링크와 같은 정적 요소가 대부분이지만 대화형 검색창이 포함되어 있습니다.
+
+`<Search/>`는 대화형이기 때문에 client component가 되어야 하지만, 나머지 layout은 server component로 유지될 수 있습니다.
 
 ## 1007
 
