@@ -1,5 +1,74 @@
 # 202430132 진현우
 
+## 1111
+
+### Context provider의 동작 순서
+
+동작 순서(버튼 클릭 시 흐름)
+
+1. 사용자가 ThemeStatus의 버튼 클릭.
+
+2. toggleTheme() 호출. (ThemeStatus가 Provider의 함수를 호출)
+
+3. Provider 내부의 setTheme이 실행되어 theme 상태가 변경.
+
+4. 상태 변경으로 Provider와 그 하위 컴포넌트들이 리렌더링되어 theme 값이 최신으로 반영됨.
+
+5. useEffect가 실행되어 document.documentElement.dataset.theme 값도 갱신. (글로벌 스타일 반영)
+
+### Context provider 순서도 형식으로 정리
+
+1. 앱 시작 / RootLayout 렌더
+
+- RootLayout이 렌더되고 ThemeProvider로 children을 감쌈.
+- (파일: layout.tsx → ThemeProvider 사용)
+
+2. Context 생성 (초기화)
+
+- ThemeContext = createContext(...)가 정의되어 있음(기본값 제공).
+- (파일: src/components/theme-provider.tsx)
+
+3. Provider 인스턴스 생성
+
+- ThemeProvider 컴포넌트가 실행되어 내부 state(theme, setTheme) 생성(useState).
+- Provider의 value = { theme, toggleTheme }로 설정.
+- (파일: src/components/theme-provider.tsx)
+
+4. 하위 트리 렌더링
+
+- Provider로 감싼 children(페이지/컴포넌트)이 렌더됨. 이 하위 트리는 Context에 접근 가능.
+- (파일: layout.tsx → children)
+
+5. Consumer 사용: ThemeStatus 렌더
+
+- ThemeStatus가 렌더되어 useContext(ThemeContext)로 { theme, toggleTheme }를 가져옴.
+- (파일: src/components/theme-status.tsx)
+
+6. 사용자 상호작용: 버튼 클릭
+
+- 사용자가 ThemeStatus의 버튼을 클릭하면 toggleTheme() 호출.
+- (파일: theme-status.tsx 클릭 → ThemeProvider의 toggleTheme 실행)
+
+7. 상태 변경 내부 처리
+
+- ThemeProvider의 toggleTheme가 setTheme을 호출하여 theme 상태를 변경(예: 'light' → 'dark').
+- (파일: theme-provider.tsx)
+
+8. 부수효과 실행 (useEffect)
+
+- theme 변경으로 ThemeProvider의 useEffect가 실행되어 document.documentElement.dataset.theme = theme로 설정.
+- (파일: theme-provider.tsx → useEffect)
+
+9. 리렌더링 전파
+
+- state 변경으로 Provider와 그 하위 Consumer들이 최신 value를 받아 리렌더링됨.
+- ThemeStatus는 새 theme 값을 받아 UI(아이콘/텍스트)를 갱신함.
+
+10. 결과: 레이아웃/스타일 반영
+
+- data-theme 속성 변경을 바탕으로 CSS([data-theme="dark"] 등)가 적용되면 실제 시각적 테마 변경이 화면에 반영됨.
+- (파일: 전역 CSS 또는 별도 스타일 파일)
+
 ## 1104
 
 ### context
