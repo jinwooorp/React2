@@ -1,5 +1,190 @@
 # 202430132 진현우
 
+## 1125
+
+### Generic
+
+fetch(url).then((r) => r.json())의 타입 추론은 대체로
+any나 unknown으로 추론이 된다
+
+문제는 위와 같이 추론될 경우 이 함수를 사용하는 쪽에서 데이터의 실제 구조를 알 수 없게 된다.
+
+타입 안정성이 낮아져 런타임 오류로 이어질 가능성이 높아진다.
+
+이를 해결하기 위해 typescript에서는 Generic을 제공한다.
+
+타입을 매개변수처럼 사용하여 컴포넌트를 정의할 때 특정 타입에 종속되지 않도록 만드는 방법이다.
+
+타입을 동적으로 지정하여 동일한 로직을 다양한 타입에 대해 재사용할 수 있다.
+
+타입 안정성을 유지하면서, 유연한 코드를 작성할 수 있게 된다.
+
+### Promise<...>란 무엇인가?
+
+- Next.js 15.1부터 주요 내부 API들이 비동기(Promise 기반) 구조로 변경되었습니다.
+
+- 내부 API(예: params, searchParams, headers, cookies)가 즉시 사용 가능한 값이 아니라 비동기적으로 처리되며 Promise를 반환하게 됩니다.
+
+- 즉 Promise<...>는 비동기 연산의 결과를 나타내는 객체 타입으로, 연산이 즉시 완료되지 않고 미래의 어느 시점에서 결과가 결정될 때 이를 표현한다는 의미입니다.
+
+- Promise<{ id: string }>는 미래에 { id: string } 객체를 반환하겠다는 약속입니다.
+
+- 즉, 서버 컴포넌트로부터 Promise<{ id: string }> 객체를 받았다면, 클라이언트 컴포넌트에서는 use Hook을 사용해서 개별 데이터에 접근합니다.
+
+- Next.js 15.1 이전과 이후의 변화입니다.
+
+| 항목      | 15.0 이하             | 15.1 이상                             |
+| --------- | --------------------- | ------------------------------------- |
+| 구조      | { id: string }        | Promise<{ id: string }>               |
+| 사용 방식 | params.id로 바로 접근 | const { id } = await params 사용 필요 |
+| 특징      | 동기 객체             | 비동기 객체 (await 필수)              |
+
+### Fetch의 이해
+
+#### .then((res) => ...)
+
+- fetch()가 반환한 Promise 객체가 .then() 메서드를 가지고 있습니다.
+- Promise 객체가 resolve(성공)되면 .then()의 callback 함수가 실행됩니다.
+- 여기서 res는 서버에서 반환된 Promise 객체입니다.
+- Promise 객체는 status, header, body 등 HTTP 응답 전체를 포함합니다.
+- res.ok는 상태 코드가 200~299인지 불리언(Boolean)으로 알려줍니다.
+- res.status는 숫자로 알려줍니다. (예: 200, 404)
+- fetch와 마찬가지로 예외 처리는 별도로 해야 합니다.
+
+```js
+function getPosts() {
+  return fetch("https://jsonplaceholder.typicode.com/posts").then((res) =>
+    res.json(),
+  );
+}
+```
+
+#### res.json()
+
+res.json()은 이 Response 객체의 본문(body)을 JSON으로 파싱하는 비동기 함수입니다.
+
+내부적으로 문자열 형태의 Response body를 읽고, JSON.parse()를 수행하여 자바스크립트 객체로 변환합니다.
+
+이 함수도 Promise를 반환하기 때문에 다시 then() 체이닝을 통해 파싱된 데이터를 사용할 수 있습니다.
+
+파싱이 완료되면 resolve(성공)되고, 파싱에 실패(유효하지 않은 JSON)하면 reject(거부)됩니다.
+
+Response body는 한 번만 읽을 수 있습니다. res.json() 또는 res.text() 등 하나만 사용이 가능합니다.
+
+내부적으로는 response stream → text → JSON.parse(text)처럼 동작합니다.
+
+JSON 파싱 에러의 예외 처리가 필요합니다.
+
+# Fetch의 이해
+
+설명을 정리하면 다음과 같습니다.
+
+| 구성 요소 | 소속                | 설명                                          | 예시                   |
+| --------- | ------------------- | --------------------------------------------- | ---------------------- |
+| `fetch()` | 전역 함수 (Web API) | HTTP 요청을 보내고 Promise<Response>를 반환   | `fetch(url)`           |
+| `.then()` | Promise 메서드      | Promise가 완료되면 callback 실행              | `fetch(url).then(...)` |
+| `.json()` | Response 메서드     | Body를 JSON으로 변환하는 또 다른 Promise 반환 | `res.json()`           |
+
+```js
+import Posts from "@/components/posts";
+import { Suspense } from "react";
+
+function getPosts() {
+  return fetch("https://jsonplaceholder.typicode.com/posts").then((res) =>
+    res.json(),
+  );
+}
+
+export default function Page() {
+  // Don't await the data fetching function
+  // await를 사용하지 않고 Promise를 반환합니다.
+  const posts = getPosts();
+
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Posts posts={posts} />
+    </Suspense>
+  );
+}
+```
+
+### Suspense Component
+
+비동기 작업 중에 ui의 일부를 일시적으로 대채ui(fallback)로 보여주어 사용자 경험을 향상시키는 react 기능
+
+### 핵심기능
+
+비동기 작업이 완료될 때 까지 해당 컴포넌트 트리 랜더링을 일시 중단함
+
+작업이 완료되면 실제 ui를 출력
+
+비동기 로딩 중 보여 줄 fallback UI(로딩 인디케이터 등)를 지정할 수 있습니다.
+
+import하여 사용합니다. import { Suspense } from 'react'
+
+Suspense 내부에 여러 개의 컴포넌트가 있을 경우, 내부 컴포넌트 중 하나라도 로딩 중이면 fallback UI가 표시되고, 모든 작업이 완료되면 한 번에 실제 UI가 노출됩니다.
+
+이 기능을 활용하면 여러 비동기 컴포넌트를 독립적으로 대기하거나, 병렬 로딩 상태를 효과적으로 관리할 수 있습니다.
+
+## 1118
+
+### 알아두면 좋은 점
+
+### Fetching Data (데이터 가져오기) > 1-1. 서버 컴포넌트
+
+1-1. 서버 컴포넌트
+
+- 서버 컴포넌트에서 데이터를 fetch하는 방법은 두 가지가 있습니다.
+
+1. fetch API
+2. ORM 또는 데이터베이스
+
+[ 1. fetch API 사용 ]
+
+- 데이터를 가져오려면 fetch API를 사용하여 컴포넌트를 비동기식 함수로 변환하고 다음 fetch의 호출을 기다립니다. 예를 들어:
+
+fetch 응답은 기본적으로 캐싱되지 않는다
+
+그러나 nextjs 는 라우팅 페이지를 미리 렌더링 하고, 성능 향상을 위해 출력을 캐싱됩니다.
+
+2 orm 또는 데이터베이스 사용
+
+서버 컴포넌트는 서버에서 렌더링 되기 때문에 ormd이나 데이터베이스 클라이언트를 사용해서 안전하게 데이터베이스 퀴리를 실행할 수 있다.
+
+컴포넌트를 비동기 함수로 변환하고 호출을 기다린다.
+
+1-2 클라이언트 컴포넌트
+
+클라이언트 컴포넌트ㅔ서 데이터를 fetch 하는 방법은 두 가지가 있다.
+
+1. React의 use Hook
+2. SWR OR React 쿼리 같은 통신 라이브러리
+
+use Hook을 사용한 스트리밍 데이터
+
+react의 use Hook을 사용하여 서버에서 클라이언트 데이터를 스트리밍합니다.
+
+서버 컴포넌트에서 데이터를 먼저 fetch하고 그 결과(promise)를 클라이언트 컴포넌트에 prop으로 전달한다.
+
+서버 컴포넌트는 async가 가능하기 떄문에 await fetch()도 사용 가능하다
+
+하지만 클라이언트 컴포넌트에서 async가 불가능하기 떄문에 직접 fetch가 불가능 하다.
+(렌더링 중 fetch 금지)
+
+이런 이유 때문에 서버에서 fetch한 결과를 prop으로 넘기고, 클라이언트에서는 use(promise)를 써서 데이터를 가져온다.
+
+### 외부(서드 파티) component
+
+라이브러리 작성자를 위한 조언
+
+- component 라이브러리를 빌드하는 경우, client 전용 기능에 의존하는 진입점에 "use client" 지시문을 추가합니다.
+
+- 이렇게 하면 사용자가 래퍼를 만들 필요 없이 component를 server component로 가져올 수 있습니다.
+
+일부 번들러는 “use client” 지시어를 제거할 수 있습니다.
+
+React Wrap Balancer 및 Vercel Analytics 저장소에서 “use client” 지시어를 포함하도록 esbuild를 구성하는 방법의 예를 확인할 수 있습니다.
+
 ## 1111
 
 ### Context provider의 동작 순서
